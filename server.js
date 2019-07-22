@@ -10,7 +10,7 @@ var https = require('https');
 var argv = minimist(process.argv.slice(2), {
   default: {
       as_uri: "https://localhost:8443/",
-      ws_uri: "ws://187.64.118.180:8888/kurento"
+      ws_uri: "ws://localhost:8888/kurento"
   }
 });
 
@@ -103,14 +103,16 @@ CallMediaPipeline.prototype.createPipeline = function(callerId, calleeId, ws, ca
             if (error) {
                 return callback(error);
             }
-
+            
+            //Primeiro WebRTC Endpoint (quem está ligando)
             pipeline.create('WebRtcEndpoint', function(error, callerWebRtcEndpoint) {
                 if (error) {
                     pipeline.release();
                     return callback(error);
                 }
-
-                pipeline.create('RecorderEndpoint', {uri: "file:///tmp/fileA.webm"}, function(error, recorderEndpointA) {
+                
+                //Gravador Endpoint (quem está ligando)
+                pipeline.create('RecorderEndpoint', {uri: "file://tmp/fileA.webm"}, function(error, recorderEndpointA) {
                     callerWebRtcEndpoint.connect(recorderEndpointA);
                     recorderEndpointA.record();
                 });
@@ -129,14 +131,16 @@ CallMediaPipeline.prototype.createPipeline = function(callerId, calleeId, ws, ca
                         candidate : candidate
                     }));
                 });
-
+                
+                //Segundo WebRTC Endpoint (quem está recebendo a ligação)
                 pipeline.create('WebRtcEndpoint', function(error, calleeWebRtcEndpoint) {
                     if (error) {
                         pipeline.release();
                         return callback(error);
                     }
                     
-                    pipeline.create('RecorderEndpoint', {uri: "file:///tmp/fileB.webm"}, function(error, recorderEndpointB) {
+                    //Gravador Endpoint (quem está recebendo a ligação)
+                    pipeline.create('RecorderEndpoint', {uri: "file://tmp/fileB.webm"}, function(error, recorderEndpointB) {
                         calleeWebRtcEndpoint.connect(recorderEndpointB);
                         recorderEndpointB.record();
                     });
